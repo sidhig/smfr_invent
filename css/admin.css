@@ -1,0 +1,47 @@
+.cen {
+	width:50vw;
+	height:auto;
+	border-style: solid;
+    border-color: black;
+    background:#FFDFDF;
+    margin: 10%;
+ }
+ body {
+    background-image: url("cool_black.jpg");
+}
+ .demo-table {
+ 	text-align:center;
+ 	width:50vw;
+ 	height:auto;
+ 	border-spacing: initial;
+ 	margin: 20px 0px;
+ 	word-break: break-word;
+ 	table-layout: auto;
+ 	line-height:1.8em;
+ 	color:#333;
+ }
+.demo-table td {
+	
+	padding: 2% 0% .90% 0%;
+
+}
+.demoInputBox {
+	
+	padding: 7px;
+	border: #F0F0F0 1px solid;
+	border-radius: 4px;
+	height:30px;
+	margin-right:20px;  
+	   
+}
+.btnRegister {	
+	padding: 10px;
+	background-color: #09F;
+	border: 0;color: #FFF;
+	cursor: pointer;
+	/*margin-bottom:10%;*/
+}
+.tr{	
+	font-size: 120%;
+	 font-weight: bold;
+	}

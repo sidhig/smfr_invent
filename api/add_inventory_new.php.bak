@@ -1,0 +1,112 @@
+<?
+//error_reporting(0);
+include_once('connect.php');
+
+/*$res = mysql_query("select * from req_table where created < DATE_ADD(now(),INTERVAL - 1 minute)");
+if(mysql_num_rows($res)>0){
+		while($user = mysql_fetch_assoc($res)){
+			$res = mysql_query("update inventory set qty = qty+".$user['qty']." where id = ".$user['id']."");
+		}
+		mysql_query("delete from req_table where created < DATE_ADD(now(),INTERVAL - 1 minute)");
+}*/
+
+if(!empty($_REQUEST)){
+	if($_FILES['uploadimg']['name']!=''){
+		 $target_path  = "../uploads/";
+		//$imageFileType = pathinfo($_FILES["uploadimg"]["name"],PATHINFO_EXTENSION);
+
+		$image = (explode(".",basename( $_FILES['uploadimg']['name'])));
+
+		$target_path = $target_path .time().'.'.$image[1];
+	}
+	else{ 
+		$target_path='';
+	}
+
+	
+if($_REQUEST['invent_data']!=''){
+
+$asd = json_decode($_REQUEST['invent_data']);
+$_POST['desc'] = $asd->desc;
+$_POST['olddesc'] = $asd->olddesc;
+$_POST['userid'] = $asd->userid;
+$_POST['invent_type'] = $asd->invent_type;
+$_POST['category'] = $asd->category;
+			if($_FILES['uploadimg']['tmp_name']!=''){
+				 if(move_uploaded_file($_FILES['uploadimg']['tmp_name'], $target_path)){
+					unlink('../'.$row['img_url']);
+				 $imgqry = " img_url = '".trim(trim($target_path,'.'),'/')."', ";
+				 }
+			}else{
+					$res = mysql_query("select * from inventory where description = '".$_POST['olddesc']."' AND img_url !=''");
+					$row = mysql_fetch_assoc($res);
+					$imgqry = " img_url = '".$row['img_url']."', ";
+					$target_path=$row['img_url'];
+				
+			}
+			//echo "select * from inventory where description = '".$_POST['desc']."' AND img_url !=''";
+			//echo $imgqry;
+if($_POST['olddesc']!='' && ($_POST['olddesc'] != $_POST['desc'])){
+	$res = mysql_query("update inventory set invent_type = '".$_POST['invent_type']."',".$imgqry." updated = now(), category = '".$_POST['category']."',description = '".$_POST['desc']."' where description = '".$_POST['olddesc']."'");
+}else{
+	$res = mysql_query("update inventory set invent_type = '".$_POST['invent_type']."',".$imgqry." updated = now(), category = '".$_POST['category']."' where description = '".$_POST['desc']."'");
+}
+foreach ($asd->{'data'} as $value) {
+	
+	$_POST['cost'] = $value->cost;
+	$_POST['reorder'] = $value->reorder;
+	$_POST['qty'] = $value->qty;
+	$_POST['size'] = $value->size;
+
+$res = mysql_query("select * from inventory where description = '".$_POST['desc']."' and size = '".$_POST['size']."'");
+if(mysql_num_rows($res)>0){
+	$row = mysql_fetch_assoc($res);
+		/*if($row['isactive']==0){*/
+
+			$res = mysql_query("update inventory set       
+                              cost = '".$_POST['cost']."',
+							  reorder = '".$_POST['reorder']."',
+                              invent_type = '".$_POST['invent_type']."',
+                              category = '".$_POST['category']."',
+                              qty = '".$_POST['qty']."',
+                              user = '".$_POST['userid']."',
+                              isactive = '1',
+							  updated = now() where description = '".$_POST['desc']."' and size = '".$_POST['size']."'");
+			$r = array('status'=>200,'data'=>'','msg'=>'Inventory Activated successfully');
+		/*}else{
+			$r = array('status'=>400,'msg'=>'Inventory already exist with this Description and size.');
+		}*/
+}else{
+			 
+          move_uploaded_file($_FILES['uploadimg']['tmp_name'], $target_path);
+		
+	$res = mysql_query("insert into inventory set                            
+                              size = '".$_POST['size']."',
+                              cost = '".$_POST['cost']."',
+                              description = '".$_POST['desc']."',
+                              invent_type = '".$_POST['invent_type']."',
+                              qty = '".$_POST['qty']."',
+							  reorder = '".$_POST['reorder']."',
+                              img_url = '".trim(trim($target_path,'.'),'/')."',
+                              user = '".$_POST['userid']."',
+                              isactive = '1',
+							  updated = now(),
+                              created = now()");
+		$inserted_id= mysql_insert_id();
+	$log_res = mysql_query("insert into `log` set 
+							  `type` = '1',
+							  order_id='0',
+							  item_id = '".$inserted_id."',
+							  qty = '".$_POST['qty']."',
+							  user_id = '".$_POST['userid']."',
+							  deviceType = 'Mobile',
+							  created = now()");
+	$r = array('status'=>200,'data'=>'','msg'=>'Inventory added successfully');
+	}
+}
+	
+}
+}else{ $r = array('status'=>400,'data'=>'Description must be filled'); }
+echo json_encode($r);
+
+?>

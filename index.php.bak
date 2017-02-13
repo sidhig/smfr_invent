@@ -1,0 +1,97 @@
+<?
+error_reporting(0);
+ // include_once('config.php');
+
+$database = "smfr_invent";
+
+$db_handle = mysql_connect("50.62.148.208", 'saurabh', 'password');
+$db_found = mysql_select_db($database, $db_handle);
+
+$conn = new mysqli("50.62.148.208","saurabh","password",$database);
+if ($conn->connect_error) {
+     die("Connection failed: " . $conn->connect_error);
+}
+?>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<?php    //print_r($_REQUEST);
+
+    
+    //set it to writable location, a place for temp generated PNG files
+    $PNG_TEMP_DIR = dirname(__FILE__).DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR;
+    
+    //html PNG location prefix
+    $PNG_WEB_DIR = 'phpqrcode/temp/';
+
+    include "qrlib.php";    
+    
+    //ofcourse we need rights to create temp dir
+    if (!file_exists($PNG_TEMP_DIR))
+        mkdir($PNG_TEMP_DIR);
+    
+    
+    $filename = $PNG_TEMP_DIR.'test.png';
+    
+    //processing form input
+    //remember to sanitize user input in real-life solution !!!
+    $errorCorrectionLevel = 'M';
+    if (isset($_REQUEST['level']) && in_array($_REQUEST['level'], array('L','M','Q','H')))
+        $errorCorrectionLevel = $_REQUEST['level'];    
+
+   $matrixPointSize = 4;
+    if (isset($_REQUEST['size']))
+        $matrixPointSize = min(max((int)$_REQUEST['size'], 1), 10);
+
+
+    if (isset($_REQUEST['data'])) { 
+    
+        //it's very important!
+        if (trim($_REQUEST['data']) == '')
+            die('data cannot be empty! <a href="?">back</a>');
+            
+        // user data
+        $filename = $PNG_TEMP_DIR.'test'.md5($_REQUEST['data'].'|'.$errorCorrectionLevel.'|'.$matrixPointSize).'.png';
+        QRcode::png($_REQUEST['data'], $filename, $errorCorrectionLevel, $matrixPointSize, 2);    
+        
+    } else {    
+    
+        //default data
+        echo 'You can provide data in GET parameter: <a href="?data=like_that">like that</a><hr/>';    
+        QRcode::png('PHP QR Code :)', $filename, $errorCorrectionLevel, $matrixPointSize, 2);    
+        
+    } ?>
+
+    
+   <? /* $sql = ("SELECT  inventory.*,tbl_user.username FROM `inventory` left join tbl_user on tbl_user.id = inventory.user order by inventory.id  desc ");*/
+  
+   $sql = "SELECT * from inventory where id = '".$_REQUEST['id']."'";
+        $result = $conn->query($sql);
+        // ($result->num_rows > 0) {
+        ($obj = $result->fetch_object()); ?>
+   
+   
+<div style="width:30vw;float:left;">
+    <div style="float:left;height:30vh;">
+        <span><? if($obj->img_url !="") { ?><a ><img src = "<?=$obj->img_url?>" style="width:12vw;max-height:margin-left: 1vw;border: 1px solid #EFE3E3;margin-top: 1vh;
+         margin-bottom:3vh;" ></a> <? } ?></span>
+     </div><br>
+    
+    <div style="float:right;width:15vw;margin-top:-2vh;margin-right:.5vw;">
+        <b style="font-size:2.2rem;"><?=($obj->description)?></b><br>
+        <b>Size:</b><?=($obj->size)?><br>
+        <b>Cost:</b><?=($obj->cost)?><br>
+        <b>Quantity:</b><?=($obj->qty)?><br><br>
+        <?echo '<img src="'.$PNG_WEB_DIR.basename($filename).'" style="width:5vw;"/><hr/>'; ?> 
+    </div><br>
+</div><center>
+<div style="width:80%;" >
+    <form action='edit_invent.php' method='post'>
+       <input type="button" id='print_modal' value="Print" class="btn btn-primary" onclick="">
+       <input type='hidden' name='edit_id' value='<?=($obj->id)?>'>
+       <input type="submit" class="btn btn-primary" id="edit" value='Edit'>
+       <a href="#close-modal" rel="modal:close"><input type="button" value="Close" class="btn btn-primary" ></a>
+    </form>
+</div></center>
+    
+     
+    vh;
